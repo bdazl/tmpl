@@ -11,6 +11,7 @@ import (
 
 var (
 	// valuesIn   string
+	fileSepFmt string
 	templateIn []string
 	data       Data
 )
@@ -25,10 +26,12 @@ func init() {
 
 	// Parse parameters
 	// flag.StringVar(&valuesIn, "d", "", "YAML data file")
+	flag.StringVar(&fileSepFmt, "s", "--- %v ---", "file separator string (%v is replaced with filename)")
 	flag.Parse()
 	templateIn = flag.Args() // positional params (template inputs)
 
 	initEnv()
+	initFileSep()
 }
 
 func initEnv() {
@@ -37,6 +40,17 @@ func initEnv() {
 	for _, e := range env {
 		keyVal := strings.SplitN(e, "=", 2)
 		data.Env[keyVal[0]] = keyVal[1]
+	}
+}
+
+func initFileSep() {
+	// TODO: We should sanitize inputs from format substrings.
+	// Only one %v should be allowed
+
+	// Ensure separator ends with newline
+	lastEndl := strings.LastIndex(fileSepFmt, "\n")
+	if lastEndl != len(fileSepFmt)-1 {
+		fileSepFmt += "\n"
 	}
 }
 
@@ -49,16 +63,26 @@ func process(name, in string, out io.Writer) {
 }
 
 func main() {
+	var (
+		templateCount = len(templateIn)
+		multiFile     = templateCount > 1
+	)
+
 	for _, f := range templateIn {
 		buf, err := os.ReadFile(f)
 		if err != nil {
 			die(err)
 		}
+
+		if multiFile {
+			fmt.Printf(fileSepFmt, f)
+		}
+
 		process(f, string(buf), os.Stdout)
 	}
 
 	// If no template file was specified, use stdin
-	if len(templateIn) == 0 {
+	if templateCount == 0 {
 		// Must read until EOF before parsing with template
 		buf, err := io.ReadAll(os.Stdin)
 		if err != nil {
