@@ -9,13 +9,14 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"gopkg.in/yaml.v3"
 )
 
 var (
-	// valuesIn   string
-	fileSepFmt string
-	templateIn []string
-	data       Data
+	fileSepFmt    string
+	valuesFile    string
+	templateFiles []string
+	data          Data
 )
 
 // This represents the data available from template documents
@@ -25,15 +26,14 @@ type Data struct {
 }
 
 func init() {
-	// TODO: Init sprig funcs
-
 	// Parse parameters
-	// flag.StringVar(&valuesIn, "d", "", "YAML data file")
-	flag.StringVar(&fileSepFmt, "s", "--- %v ---", "file separator string (%v is replaced with filename)")
+	flag.StringVar(&valuesFile, "f", "", "YAML data file")
+	flag.StringVar(&fileSepFmt, "s", "--- %v ---", "file separator string, where %v is replaced with filename")
 	flag.Parse()
-	templateIn = flag.Args() // positional params (template inputs)
+	templateFiles = flag.Args() // positional params (template inputs)
 
 	initEnv()
+	initValues()
 	initFileSep()
 }
 
@@ -43,6 +43,22 @@ func initEnv() {
 	for _, e := range env {
 		keyVal := strings.SplitN(e, "=", 2)
 		data.Env[keyVal[0]] = keyVal[1]
+	}
+}
+
+func initValues() {
+	if valuesFile == "" {
+		return
+	}
+
+	buf, err := os.ReadFile(valuesFile)
+	if err != nil {
+		die(err)
+	}
+
+	err = yaml.Unmarshal(buf, &data.Values)
+	if err != nil {
+		die(err)
 	}
 }
 
@@ -68,11 +84,11 @@ func process(name, in string, out io.Writer) {
 
 func main() {
 	var (
-		templateCount = len(templateIn)
+		templateCount = len(templateFiles)
 		multiFile     = templateCount > 1
 	)
 
-	for _, f := range templateIn {
+	for _, f := range templateFiles {
 		buf, err := os.ReadFile(f)
 		if err != nil {
 			die(err)
