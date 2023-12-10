@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
 )
 
 var (
@@ -16,6 +18,7 @@ var (
 	data       Data
 )
 
+// This represents the data available from template documents
 type Data struct {
 	Env    map[string]string
 	Values map[string]interface{}
@@ -55,7 +58,8 @@ func initFileSep() {
 }
 
 func process(name, in string, out io.Writer) {
-	t := template.Must(template.New(name).Parse(in))
+	t := template.Must(template.New(name).Funcs(sprig.TxtFuncMap()).Parse(in))
+
 	err := t.Execute(out, data)
 	if err != nil {
 		die(err)
