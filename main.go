@@ -105,6 +105,7 @@ func parseProgramArgs() ProgramArgs {
 		dataFile:   flag.String("f", "", "YAML data file"),
 		fileSepFmt: flag.String("s", sepDeflt, sepHelp),
 	}
+	flag.Parse()
 
 	// Parse rest of parameters
 	args.templateFiles = flag.Args() // positional params (template inputs)
