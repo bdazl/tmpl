@@ -1,3 +1,11 @@
+//	  _    __  __ ,___  _
+//	 | |  /  \/  \  _ \| |
+//	<   > | |\/| | |_) | |
+//	 | |__| |  | |  __/| |__
+//	 \___/|_|  |_|_|   \___/
+//
+// Copyright (C) Jacob Peyron <jacob@peyron.io>
+// This code is licensed under MIT license.
 package main
 
 // MetaData is the meta data supplied to the renderer
