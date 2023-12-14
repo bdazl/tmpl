@@ -24,7 +24,7 @@ go install github.com/bdazl/tmpl@latest
 ## Usage
 
 The most basic use-case is reading from stdin (the available environment variables can be
-accessed from`.Env`):
+accessed from `.Env`):
 
 ```bash
 $ echo "My home: {{ .Env.HOME }}" | tmpl
