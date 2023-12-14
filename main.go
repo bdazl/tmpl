@@ -27,7 +27,6 @@ const (
 // ProgramArgs describes the parsed inpu from the program arguments
 type ProgramArgs struct {
 	dataFile      *string
-	fileSepFmt    *string
 	templateFiles []string
 }
 
