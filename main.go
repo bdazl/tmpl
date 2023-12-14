@@ -35,7 +35,7 @@ func main() {
 	var (
 		args = parseProgramArgs()
 		env  = environ()
-		vals = applyOrDflt(readThenYamlUnmarshal, args.dataFile, nil)
+		vals = applyOrDflt(readDataYaml, args.dataFile, nil)
 		meta = NewMeta("tmpl", env, vals)
 	)
 
@@ -64,21 +64,29 @@ func render(meta MetaData, documents []Document, out io.Writer) {
 			die(err)
 		}
 
+		// Silent files renders to /dev/null
+		var writer io.Writer = out
+		if d.silent {
+			writer = io.Discard
+		}
+
 		docData := NewDocData(meta, d)
-		err = parsed.Execute(out, docData)
+		err = parsed.Execute(writer, docData)
 		if err != nil {
 			die(err)
 		}
 	}
 }
 
+// createDocuments reads filenames (including special files like stdin) and reads their contents.
+// Silent documents are documents that should not be rendered to stdout
 func createDocuments(filenames []string, silent bool) []Document {
 	var (
 		uniq = rmDupes(filenames)
 		docs = make([]Document, len(uniq))
 	)
 	for i, f := range uniq {
-		docs[i] = NewDoc(f, readFile(f), true)
+		docs[i] = NewDoc(f, readFile(f), silent)
 	}
 	return docs
 }
@@ -106,8 +114,8 @@ func environ() Environment {
 	return out
 }
 
-// readThenYamlUnmarshal reads file content and unmarshals it to a general map.
-func readThenYamlUnmarshal(filename string) map[string]interface{} {
+// readDataYaml reads yaml-file content and unmarshals it to a general map.
+func readDataYaml(filename string) Values {
 	if filename == "" {
 		return nil
 	}
