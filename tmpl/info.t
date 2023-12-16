@@ -1,7 +1,7 @@
 {{ template "tmpl.banner" }}
 
-version: {{ if .Values.tmpl -}}
-{{ .Values.tmpl.version }}
+version: {{ if .tmpl -}}
+{{ .tmpl.version }}
 {{- else -}}
 {{ template "tmpl.version" }}
 {{- end }}
