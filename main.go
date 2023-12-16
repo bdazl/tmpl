@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"text/template"
 
 	"gopkg.in/yaml.v3"
@@ -26,15 +25,15 @@ const (
 // ProgramArgs describes the parsed inpu from the program arguments
 type ProgramArgs struct {
 	dataFile      *string
+	subKey        string
 	templateFiles []string
 }
 
 func main() {
 	var (
 		args = parseProgramArgs()
-		env  = environ()
 		vals = applyOrDflt(readDataYaml, args.dataFile, nil)
-		meta = NewMeta("tmpl", env, vals)
+		meta = NewMeta("tmpl", args.subKey, vals)
 	)
 
 	// If no template file was specified, assume stdin
@@ -68,8 +67,7 @@ func render(meta MetaData, documents []Document, out io.Writer) {
 			writer = io.Discard
 		}
 
-		docData := NewDocData(meta, d)
-		err = parsed.Execute(writer, docData)
+		err = parsed.Execute(writer, meta.Values)
 		if err != nil {
 			die(err)
 		}
@@ -94,22 +92,12 @@ func parseProgramArgs() ProgramArgs {
 	args := ProgramArgs{
 		dataFile: flag.String("d", "", "Data YAML file"),
 	}
+	flag.StringVar(&args.subKey, "r", "", "Root key to place data under")
 	flag.Parse()
 
 	// Parse rest of parameters
 	args.templateFiles = flag.Args() // positional params (template inputs)
 	return args
-}
-
-// environ returns the environment variables as a map.
-func environ() Environment {
-	env := os.Environ()
-	out := make(Environment, len(env))
-	for _, e := range env {
-		keyVal := strings.SplitN(e, "=", 2)
-		out[keyVal[0]] = keyVal[1]
-	}
-	return out
 }
 
 // readDataYaml reads yaml-file content and unmarshals it to a general map.

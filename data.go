@@ -8,10 +8,17 @@
 // This code is licensed under MIT license.
 package main
 
+import (
+	"strings"
+
+	"slices"
+)
+
+type Values = map[string]interface{}
+
 // MetaData is the meta data supplied to the renderer
 type MetaData struct {
 	Name string // Output name (full render pass name)
-	Environment
 	Values
 }
 
@@ -22,22 +29,10 @@ type Document struct {
 	silent   bool
 }
 
-// DocData is data made available to template documents
-type DocData struct {
-	Filename string
-	Content  string
-	Env      Environment
-	Values
-}
-
-type Environment = map[string]string
-type Values = map[string]interface{}
-
-func NewMeta(name string, env Environment, vals Values) MetaData {
+func NewMeta(name, subKey string, vals Values) MetaData {
 	return MetaData{
-		Name:        name,
-		Environment: env,
-		Values:      vals,
+		Name:   name,
+		Values: subKeyCreate(subKey, vals),
 	}
 }
 
@@ -49,11 +44,26 @@ func NewDoc(filename, content string, silent bool) Document {
 	}
 }
 
-func NewDocData(meta MetaData, doc Document) DocData {
-	return DocData{
-		Filename: doc.Filename,
-		Content:  doc.Content,
-		Env:      meta.Environment,
-		Values:   meta.Values,
+// subKeyCreate takes a string of sub-keys, separated by a '.', and returns a
+// nested map where the first sub-key holds the next and so on, until the last element
+// holds the actual data.
+func subKeyCreate(subKey string, vals Values) Values {
+	if subKey == "" {
+		return vals
 	}
+	prev := vals
+
+	keys := strings.Split(subKey, ".")
+	slices.Reverse(keys)
+
+	// Traverse sub-keys in reverse order and consequently wrap the previous map
+	// in the next one. In the end you should have a map that looks like:
+	// map[first][second]...[last] = vals
+	for _, k := range keys {
+		next := map[string]any{
+			k: prev,
+		}
+		prev = next
+	}
+	return prev
 }
