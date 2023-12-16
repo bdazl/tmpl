@@ -30,7 +30,9 @@ func funcMap() template.FuncMap {
 
 	// tmpl functions
 	tmplMap := template.FuncMap{
-		"run": run,
+		"run":      run,
+		"runErr":   runErr,
+		"exitCode": exitCode,
 
 		// Helm compatibility
 		"toYaml":        toYaml,
@@ -55,13 +57,31 @@ func run(name string, arg ...string) string {
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		return ""
+	}
+	return trim(string(out))
+}
+
+// runErr runs arbitrary programs (like run), but it does not swallow errors.
+func runErr(name string, arg ...string) string {
+	cmd := exec.Command(name, arg...)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
 		// Should we really handle errors like this?
 		if len(out) > 0 {
-			return fmt.Sprintf("%v; error: %v", trim(string(out)), err.Error())
+			return fmt.Sprintf("[output: %v; error: %v]", trim(string(out)), err.Error())
 		}
 		return fmt.Sprintf("error: %v", err.Error())
 	}
 	return trim(string(out))
+}
+
+func exitCode(name string, arg ...string) int {
+	cmd := exec.Command(name, arg...)
+	_ = cmd.Start()
+	_ = cmd.Wait()
+	return cmd.ProcessState.ExitCode()
 }
 
 // toYaml marshals YAML and returns it as a string. Any errors are ignored (Helm compatibility).

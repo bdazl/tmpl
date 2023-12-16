@@ -6,7 +6,8 @@ document to stdout. The bulk of the [available functions](https://masterminds.gi
 to tmpl comes from the [sprig module](https://github.com/Masterminds/sprig).
 
 This program has a [lot](https://github.com/hairyhenderson/gomplate) of
-[alternatives](https://github.com/belitre/gotpl), most with the same name (look at me being
+[alternatives](https://github.com/belitre/gotpl), [most](https://github.com/tmc/tmpl) with the
+[same](https://github.com/abcum/tmpl) [name](https://github.com/ukautz/tmpl) (look at me being
 original). Please consider looking into those projects. I wrote this because I wanted a slim
 program with few dependencies that follows the Unix philosophy of "do one thing and one thing well". 
 I also wanted certain behaviour and functions.
@@ -80,6 +81,8 @@ Most of the [available functions](https://masterminds.github.io/sprig) to tmpl c
 
 In addition to these functions, [tmpl defines its own](funcs.go):
 - `run`: run arbitrary commands and return the combined stdout and stderr (ignores error codes).
+- `runErr`: similar to `run`, but if exit code is non-zero (or other error) the error will be printed.
+- `exitCode`: run command, but return only its exit code
 
 Some functions mimic [Helm](https://github.com/helm/helm), and these are implemented and works
 similarly to how they work in `Helm`:
