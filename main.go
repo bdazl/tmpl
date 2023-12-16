@@ -16,7 +16,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v3"
 )
 
@@ -52,8 +51,8 @@ func main() {
 // which means that its content will be rendered to /dev/null
 func render(meta MetaData, documents []Document, out io.Writer) {
 	var (
+		funcs = funcMap()
 		t     = template.New(meta.Name)
-		funcs = sprig.TxtFuncMap()
 		tf    = t.Funcs(funcs)
 	)
 
@@ -124,7 +123,7 @@ func readDataYaml(filename string) Values {
 		die(err)
 	}
 
-	var out map[string]interface{}
+	var out Values
 	err = yaml.Unmarshal(buf, &out)
 	if err != nil {
 		die(err)
